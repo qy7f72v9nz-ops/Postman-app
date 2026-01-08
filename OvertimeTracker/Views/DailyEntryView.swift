@@ -30,116 +30,116 @@ struct DailyEntryView: View {
 
     var body: some View {
         NavigationView {
-            Form {
-                // Date section
-                Section {
-                    HStack {
-                        Text("Date")
-                            .foregroundColor(.primary)
-                        Spacer()
-                        Text("\(entry.dayOfWeek), \(entry.shortDate)")
-                            .foregroundColor(.secondary)
-                    }
-                }
+            ZStack {
+                Color(.systemGroupedBackground)
+                    .ignoresSafeArea()
 
-                // Before contracted hours
-                Section {
-                    HStack {
-                        Text("Hours")
-                        Spacer()
-                        Picker("Hours", selection: $beforeHours) {
-                            ForEach(0...23, id: \.self) { hour in
-                                Text("\(hour)").tag(hour)
-                            }
+                ScrollView {
+                    VStack(spacing: 24) {
+                        // Date header card
+                        VStack(spacing: 8) {
+                            Image(systemName: Calendar.current.isDateInToday(entry.date) ? "calendar.circle.fill" : "calendar")
+                                .font(.system(size: 40))
+                                .foregroundColor(Calendar.current.isDateInToday(entry.date) ?
+                                    Color(red: 1.0, green: 0.27, blue: 0.23) :
+                                    Color(red: 0.0, green: 0.48, blue: 1.0))
+
+                            Text(entry.dayOfWeek)
+                                .font(.system(size: 28, weight: .bold))
+                                .foregroundColor(.primary)
+
+                            Text(entry.shortDate)
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(.secondary)
                         }
-                        .pickerStyle(.wheel)
-                        .frame(width: 80, height: 120)
-                        .clipped()
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 24)
+                        .background(
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(Color(.systemBackground))
+                                .shadow(color: Color.black.opacity(0.08), radius: 12, x: 0, y: 4)
+                        )
+                        .padding(.horizontal, 20)
+                        .padding(.top, 20)
 
-                        Text("h")
-                            .foregroundColor(.secondary)
+                        // Before contracted hours card
+                        TimePickerCard(
+                            title: "Before Shift",
+                            icon: "arrow.up.circle.fill",
+                            iconColor: Color(red: 0.2, green: 0.78, blue: 0.35),
+                            description: "Overtime before your regular shift",
+                            hours: $beforeHours,
+                            minutes: $beforeMinutes
+                        )
 
-                        Picker("Minutes", selection: $beforeMinutes) {
-                            ForEach([0, 15, 30, 45], id: \.self) { minute in
-                                Text("\(minute)").tag(minute)
+                        // After contracted hours card
+                        TimePickerCard(
+                            title: "After Shift",
+                            icon: "arrow.down.circle.fill",
+                            iconColor: Color(red: 1.0, green: 0.58, blue: 0.0),
+                            description: "Overtime after your regular shift",
+                            hours: $afterHours,
+                            minutes: $afterMinutes
+                        )
+
+                        // Total card
+                        VStack(spacing: 12) {
+                            HStack {
+                                Image(systemName: "clock.fill")
+                                    .font(.system(size: 20))
+                                    .foregroundColor(Color(red: 0.0, green: 0.48, blue: 1.0))
+
+                                Text("Total Overtime")
+                                    .font(.system(size: 18, weight: .semibold))
+                                    .foregroundColor(.primary)
+
+                                Spacer()
                             }
+
+                            Text(viewModel.formatHours(calculateTotal()))
+                                .font(.system(size: 52, weight: .bold, design: .rounded))
+                                .foregroundColor(calculateTotal() > 0 ?
+                                    Color(red: 0.0, green: 0.48, blue: 1.0) :
+                                    Color(.systemGray3))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 8)
                         }
-                        .pickerStyle(.wheel)
-                        .frame(width: 80, height: 120)
-                        .clipped()
-
-                        Text("m")
-                            .foregroundColor(.secondary)
+                        .padding(24)
+                        .background(
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(Color(.systemBackground))
+                                .shadow(color: Color.black.opacity(0.08), radius: 12, x: 0, y: 4)
+                        )
+                        .padding(.horizontal, 20)
                     }
-                } header: {
-                    Text("Before Contracted Hours")
-                } footer: {
-                    Text("Overtime worked before your regular shift")
-                }
-
-                // After contracted hours
-                Section {
-                    HStack {
-                        Text("Hours")
-                        Spacer()
-                        Picker("Hours", selection: $afterHours) {
-                            ForEach(0...23, id: \.self) { hour in
-                                Text("\(hour)").tag(hour)
-                            }
-                        }
-                        .pickerStyle(.wheel)
-                        .frame(width: 80, height: 120)
-                        .clipped()
-
-                        Text("h")
-                            .foregroundColor(.secondary)
-
-                        Picker("Minutes", selection: $afterMinutes) {
-                            ForEach([0, 15, 30, 45], id: \.self) { minute in
-                                Text("\(minute)").tag(minute)
-                            }
-                        }
-                        .pickerStyle(.wheel)
-                        .frame(width: 80, height: 120)
-                        .clipped()
-
-                        Text("m")
-                            .foregroundColor(.secondary)
-                    }
-                } header: {
-                    Text("After Contracted Hours")
-                } footer: {
-                    Text("Overtime worked after your regular shift")
-                }
-
-                // Total section
-                Section {
-                    HStack {
-                        Text("Total Overtime")
-                            .font(.headline)
-                        Spacer()
-                        Text(viewModel.formatHours(calculateTotal()))
-                            .font(.system(size: 24, weight: .bold, design: .rounded))
-                            .foregroundColor(.blue)
-                    }
-                    .padding(.vertical, 8)
+                    .padding(.bottom, 30)
                 }
             }
             .navigationTitle("Edit Overtime")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        dismiss()
+                    Button(action: { dismiss() }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "xmark.circle.fill")
+                            Text("Cancel")
+                        }
+                        .foregroundColor(.red)
                     }
                 }
 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Save") {
+                    Button(action: {
                         saveEntry()
                         dismiss()
+                    }) {
+                        HStack(spacing: 4) {
+                            Text("Save")
+                            Image(systemName: "checkmark.circle.fill")
+                        }
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(Color(red: 0.2, green: 0.78, blue: 0.35))
                     }
-                    .fontWeight(.semibold)
                 }
             }
         }
@@ -156,6 +156,93 @@ struct DailyEntryView: View {
         updatedEntry.beforeContractedHours = Double(beforeHours) + (Double(beforeMinutes) / 60.0)
         updatedEntry.afterContractedHours = Double(afterHours) + (Double(afterMinutes) / 60.0)
         viewModel.updateEntry(updatedEntry)
+    }
+}
+
+struct TimePickerCard: View {
+    let title: String
+    let icon: String
+    let iconColor: Color
+    let description: String
+    @Binding var hours: Int
+    @Binding var minutes: Int
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            // Header
+            HStack {
+                Image(systemName: icon)
+                    .font(.system(size: 20))
+                    .foregroundColor(iconColor)
+
+                Text(title)
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(.primary)
+
+                Spacer()
+            }
+
+            Text(description)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(.secondary)
+                .padding(.top, -8)
+
+            // Time pickers
+            HStack(spacing: 8) {
+                Spacer()
+
+                // Hours picker
+                VStack(spacing: 4) {
+                    Text("HOURS")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(.secondary)
+
+                    Picker("Hours", selection: $hours) {
+                        ForEach(0...23, id: \.self) { hour in
+                            Text("\(hour)")
+                                .font(.system(size: 20, weight: .semibold, design: .rounded))
+                                .tag(hour)
+                        }
+                    }
+                    .pickerStyle(.wheel)
+                    .frame(width: 70, height: 120)
+                    .clipped()
+                }
+
+                Text(":")
+                    .font(.system(size: 32, weight: .bold))
+                    .foregroundColor(.secondary)
+                    .padding(.top, 20)
+
+                // Minutes picker
+                VStack(spacing: 4) {
+                    Text("MINUTES")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(.secondary)
+
+                    Picker("Minutes", selection: $minutes) {
+                        ForEach(0..<60, id: \.self) { minute in
+                            Text(String(format: "%02d", minute))
+                                .font(.system(size: 20, weight: .semibold, design: .rounded))
+                                .tag(minute)
+                        }
+                    }
+                    .pickerStyle(.wheel)
+                    .frame(width: 70, height: 120)
+                    .clipped()
+                }
+
+                Spacer()
+            }
+            .padding(.vertical, 8)
+        }
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Color(.systemBackground))
+                .shadow(color: Color.black.opacity(0.08), radius: 12, x: 0, y: 4)
+        )
+        .padding(.horizontal, 20)
     }
 }
 

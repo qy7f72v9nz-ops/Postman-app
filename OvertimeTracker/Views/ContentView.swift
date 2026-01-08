@@ -141,7 +141,7 @@ struct DayRow: View {
 
             Image(systemName: "chevron.right")
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(.tertiaryLabel)
+                .foregroundColor(Color(.tertiaryLabel))
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 16)
